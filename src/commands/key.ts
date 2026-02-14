@@ -25,5 +25,5 @@ export const key = async (args: string[], flags: Flags) => {
     for (const m of [...modifiers].reverse()) await page.keyboard.up(m as KeyInput)
   }
 
-  close()
+  await close()
 }

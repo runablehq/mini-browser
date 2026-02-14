@@ -20,5 +20,5 @@ export const click = async (args: string[], flags: Flags) => {
     button: flags.right ? "right" : "left",
     clickCount: flags.double ? 2 : 1,
   })
-  close()
+  await close()
 }

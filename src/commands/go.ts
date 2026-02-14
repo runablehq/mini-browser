@@ -11,5 +11,5 @@ export const go = async (args: string[], flags: Flags) => {
   const { page, close } = await connect(flags.tab)
   await page.goto(url, { waitUntil: "domcontentloaded", timeout: flags.timeout })
   console.log(page.url())
-  close()
+  await close()
 }

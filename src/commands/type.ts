@@ -30,5 +30,5 @@ export const type = async (args: string[], flags: Flags) => {
   // Type replaces selection (or appends if nothing selected)
   await page.keyboard.type(text)
 
-  close()
+  await close()
 }

@@ -21,5 +21,5 @@ export const drag = async (args: string[], flags: Flags) => {
   await page.mouse.move(x2!, y2!, { steps: 10 })
   await page.mouse.up()
 
-  close()
+  await close()
 }

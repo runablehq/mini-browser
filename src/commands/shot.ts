@@ -6,5 +6,5 @@ export const shot = async (args: string[], flags: Flags) => {
   const { page, close } = await connect(flags.tab)
   await page.screenshot({ path, type: "png" })
   console.log(path)
-  close()
+  await close()
 }

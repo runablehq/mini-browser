@@ -122,7 +122,7 @@ export const fill = async (args: string[], flags: Flags) => {
     return { filled, failed }
   }, fields)
 
-  close()
+  await close()
 
   if (results.filled.length > 0) {
     console.log(`Filled: ${results.filled.join(", ")}`)

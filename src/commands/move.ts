@@ -16,5 +16,5 @@ export const move = async (args: string[], flags: Flags) => {
 
   const { page, close } = await connect(flags.tab)
   await page.mouse.move(x, y)
-  close()
+  await close()
 }

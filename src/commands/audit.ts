@@ -351,7 +351,7 @@ export const audit = async (args: string[], flags: Flags) => {
 
   await new Promise(r => setTimeout(r, 300))
   await cdp.cleanup()
-  close()
+  await close()
 
   const { contrast, browser } = cdp
   const headingSkips = findHeadingSkips(data.a11y.headings)

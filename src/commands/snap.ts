@@ -1,5 +1,4 @@
 import { connect } from "../lib/browser"
-import { VIEWPORT } from "../lib/config"
 import type { Flags } from "../lib/flags"
 
 // Chrome's AX tree for names/roles + DOM.getBoxModel for coordinates.
@@ -25,6 +24,11 @@ interface SnapElement {
   state: Record<string, unknown>
 }
 
+interface Viewport {
+  width: number
+  height: number
+}
+
 const getBox = async (client: any, backendNodeId: number) => {
   const { model } = await client.send("DOM.getBoxModel", { backendNodeId }) as { model: any }
   if (model.width === 0 || model.height === 0) return null
@@ -35,8 +39,8 @@ const getBox = async (client: any, backendNodeId: number) => {
   }
 }
 
-const inViewport = ({ x, y }: { x: number; y: number }) =>
-  x >= 0 && x <= VIEWPORT.width && y >= 0 && y <= VIEWPORT.height + VIEWPORT_MARGIN
+const inViewport = ({ x, y }: { x: number; y: number }, viewport: Viewport) =>
+  x >= 0 && x <= viewport.width && y >= 0 && y <= viewport.height + VIEWPORT_MARGIN
 
 const extractState = (properties: any[]) =>
   (properties ?? []).reduce<Record<string, unknown>>((acc, p) => {
@@ -65,6 +69,11 @@ export const snap = async (args: string[], flags: Flags) => {
   const { page, close } = await connect(flags.tab)
   const client = await page.createCDPSession()
 
+  const viewport = await page.evaluate(() => ({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  }))
+
   const { nodes } = await client.send("Accessibility.getFullAXTree") as { nodes: any[] }
 
   const interesting = nodes.filter(n =>
@@ -75,7 +84,7 @@ export const snap = async (args: string[], flags: Flags) => {
     interesting.map(async (n): Promise<SnapElement | null> => {
       try {
         const box = await getBox(client, n.backendDOMNodeId)
-        if (!box || !inViewport(box)) return null
+        if (!box || !inViewport(box, viewport)) return null
 
         return {
           role: n.role.value,
@@ -92,7 +101,7 @@ export const snap = async (args: string[], flags: Flags) => {
     .sort((a, b) => a.y - b.y || a.x - b.x)
 
   await client.detach()
-  close()
+  await close()
 
   if (flags.json) {
     console.log(JSON.stringify(elements, null, 2))

@@ -10,7 +10,7 @@ export const text = async (args: string[], flags: Flags) => {
     return el?.innerText?.trim() ?? null
   }, selector)
 
-  close()
+  await close()
 
   if (content === null) {
     console.error(`Selector not found: ${selector}`)

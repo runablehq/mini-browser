@@ -14,7 +14,7 @@ export const js = async (args: string[], flags: Flags) => {
 
   const { page, close } = await connect(flags.tab)
   const result = await page.evaluate(code)
-  close()
+  await close()
 
   if (result === undefined || result === null) return
   console.log(typeof result === "string" ? result : JSON.stringify(result, null, 2))

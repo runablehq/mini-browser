@@ -13,13 +13,13 @@ export const wait = async (args: string[], flags: Flags) => {
   const ms = +target
   if (!isNaN(ms) && target === String(ms)) {
     await new Promise(r => setTimeout(r, ms))
-    close()
+    await close()
     return
   }
 
   if (target === "networkidle") {
     await page.waitForNetworkIdle({ timeout: flags.timeout })
-    close()
+    await close()
     return
   }
 
@@ -29,10 +29,10 @@ export const wait = async (args: string[], flags: Flags) => {
       { timeout: flags.timeout },
       target.slice(4)
     )
-    close()
+    await close()
     return
   }
 
   await page.waitForSelector(target, { timeout: flags.timeout })
-  close()
+  await close()
 }
