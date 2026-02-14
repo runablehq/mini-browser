@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "type": "module",
   "description": "A browser CLI for agents, built with Puppeteer",
-  "license": "MIT",
   "keywords": [
     "browser",
     "cli",
