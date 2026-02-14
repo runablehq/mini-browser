@@ -2,41 +2,42 @@ import { connect } from "../lib/browser"
 import type { Flags } from "../lib/flags"
 
 // Fill multiple form fields at once
-// Usage: mb fill '{"Email": "test@example.com", "Password": "secret"}'
+// Usage: mb fill Email=test@example.com "Password=my secret"
 // Keys can be: accessible name, placeholder, label text, or CSS selector
 
 interface ParseFieldsInput {
-  json: string
+  args: string[]
 }
 
-const parseFields = ({ json }: ParseFieldsInput) => {
-  let parsed: unknown
-  try {
-    parsed = JSON.parse(json)
-  } catch {
-    throw new Error('Invalid JSON for fill. Use: mb fill \'{"Field Name":"value"}\'')
+const parseKeyValuePairs = ({ args }: ParseFieldsInput): Record<string, string> => {
+  const fields: Record<string, string> = {} 
+
+  for (const arg of args) {
+    const eqIndex = arg.indexOf("=")
+    if (eqIndex === -1) {
+      throw new Error(`Invalid field "${arg}". Use key=value format, e.g.: mb fill Email=test@example.com`)
+    }
+    const key = arg.slice(0, eqIndex)
+    const value = arg.slice(eqIndex + 1)
+    if (!key) {
+      throw new Error(`Empty field name in "${arg}"`)
+    }
+    fields[key] = value
   }
 
-  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-    throw new Error("Fill payload must be a JSON object of field/value pairs")
-  }
+  return fields
+}
 
-  const entries = Object.entries(parsed as Record<string, unknown>)
-  const invalidEntry = entries.find(([, value]) => typeof value !== "string")
-  if (invalidEntry) {
-    throw new Error(`Fill value for "${invalidEntry[0]}" must be a string`)
-  }
-
-  return parsed as Record<string, string>
+const parseFields = ({ args }: ParseFieldsInput): Record<string, string> => {
+  return parseKeyValuePairs({ args })
 }
 
 export const fill = async (args: string[], flags: Flags) => {
-  const json = args[0]
-  if (!json) {
-    throw new Error('Usage: mb fill \'{"Field Name":"value", ...}\'')
+  if (args.length === 0) {
+    throw new Error('Usage: mb fill "Field Name=value" ...')
   }
 
-  const fields = parseFields({ json })
+  const fields = parseFields({ args })
   const { page, close } = await connect(flags.tab)
 
   const results = await page.evaluate((fields) => {

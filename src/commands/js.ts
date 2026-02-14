@@ -1,9 +1,10 @@
+import { text as readStdin } from "node:stream/consumers"
 import { connect } from "../lib/browser"
 import type { Flags } from "../lib/flags"
 
 export const js = async (args: string[], flags: Flags) => {
   const code = args[0] === "-"
-    ? await Bun.stdin.text()
+    ? await readStdin(process.stdin)
     : args.join(" ")
 
   if (!code.trim()) {

@@ -1,16 +1,38 @@
 {
-  "name": "mini-browser",
+  "name": "@runablehq/mini-browser",
+  "version": "0.1.0",
   "type": "module",
+  "description": "A browser CLI for agents, built with Puppeteer",
+  "license": "MIT",
+  "keywords": [
+    "browser",
+    "cli",
+    "puppeteer",
+    "automation",
+    "agent",
+    "screenshot",
+    "headless"
+  ],
   "bin": {
-    "mb": "./dist/mb"
+    "mb": "./dist/mb.js"
   },
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
-    "build": "bun build src/index.ts --compile --outfile dist/mb"
+    "build": "node scripts/build.js",
+    "build:binary": "bun build src/index.ts --compile --outfile dist/mb",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "puppeteer-core": "^24.37.3"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "esbuild": "^0.25.12"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }

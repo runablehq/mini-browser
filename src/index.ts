@@ -37,7 +37,7 @@ Observe:
 Interact:
   click <x> <y>         Click at coordinates
   type [x y] <text>     Type text (triple-clicks to select first)
-  fill <json>           Fill form: '{"Email": "a@b.com", ...}'
+  fill <k=v...>         Fill form: Email=a@b.com "Name=Jo Do"
   key <key...>          Press keys (Enter, Tab, Meta+a)
   move <x> <y>          Move mouse / hover
   drag <x1> <y1> <x2> <y2>  Drag
