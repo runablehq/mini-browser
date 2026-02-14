@@ -1,0 +1,16 @@
+{
+  "name": "mini-browser",
+  "type": "module",
+  "bin": {
+    "mb": "./dist/mb"
+  },
+  "scripts": {
+    "build": "bun build src/index.ts --compile --outfile dist/mb"
+  },
+  "dependencies": {
+    "puppeteer-core": "^24.37.3"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  }
+}

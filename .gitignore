@@ -1,0 +1,8 @@
+node_modules
+dist
+*.tsbuildinfo
+.chrome-pid
+.chrome-profile
+.env
+.DS_Store
+.pi
