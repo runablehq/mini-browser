@@ -17,8 +17,9 @@ import { js } from "./commands/js"
 import { wait } from "./commands/wait"
 import { audit } from "./commands/audit"
 import { tab } from "./commands/tab"
+import { logs } from "./commands/logs"
 
-const commands = { go, url, back, forward, shot, snap, text, click, type, fill, key, move, drag, scroll, js, wait, audit, tab }
+const commands = { go, url, back, forward, shot, snap, text, click, type, fill, key, move, drag, scroll, js, wait, audit, tab, logs }
 
 const help = `mb — Browser CLI for Agents
 
@@ -48,6 +49,7 @@ Other:
   js <code>             Run JavaScript
   wait <target>         Wait for ms/selector/networkidle/url:...
   audit                 Design audit (colors, fonts, spacing, contrast)
+  logs                  Stream console logs (Ctrl+C to stop)
 
 Tabs:
   tab list              List open tabs
