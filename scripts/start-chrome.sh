@@ -1,9 +1,18 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Resolve symlinks (e.g. when installed via npm install -g / npm link)
+SOURCE="$0"
+while [[ -L "$SOURCE" ]]; do
+  DIR="$(cd "$(dirname "$SOURCE")" && pwd)"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ "$SOURCE" != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+SCRIPT_DIR="$(cd "$(dirname "$SOURCE")" && pwd)"
+
 CHROME_PORT="${CHROME_PORT:-9222}"
-CHROME_PID_FILE="${CHROME_PID_FILE:-./.chrome-pid}"
-CHROME_USER_DATA_DIR="${CHROME_USER_DATA_DIR:-./.chrome-profile}"
+CHROME_PID_FILE="${CHROME_PID_FILE:-$SCRIPT_DIR/.chrome-pid}"
+CHROME_USER_DATA_DIR="${CHROME_USER_DATA_DIR:-$SCRIPT_DIR/.chrome-profile}"
 CHROME_BIN="${CHROME_BIN:-$(command -v google-chrome-stable || command -v google-chrome || command -v chromium-browser || command -v chromium || true)}"
 
 if [[ -z "$CHROME_BIN" ]]; then

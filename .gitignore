@@ -3,6 +3,8 @@ dist
 *.tsbuildinfo
 .chrome-pid
 .chrome-profile
+scripts/.chrome-pid
+scripts/.chrome-profile
 .env
 .DS_Store
 .pi
