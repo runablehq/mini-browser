@@ -53,7 +53,7 @@ async function newTab(args: string[], flags: Flags) {
 
   if (url) {
     try {
-      await page.goto(url, { waitUntil: "domcontentloaded", timeout: flags.timeout })
+      await page.goto(url, { waitUntil: "networkidle0", timeout: flags.timeout })
     } catch (e) {
       await page.close()
       await browser.disconnect()

@@ -1,165 +1,101 @@
-```
-               ┌─────────────────────────────────────────┐
-               │  ███╗   ███╗██████╗                     │
-               │  ████╗ ████║██╔══██╗                    │
-               │  ██╔████╔██║██████╔╝                    │
-               │  ██║╚██╔╝██║██╔══██╗                    │
-               │  ██║ ╚═╝ ██║██████╔╝                    │
-               │  ╚═╝     ╚═╝╚═════╝                     │
-               │                                         │
-               │     mini-browser for agents             │
-               └─────────────────────────────────────────┘
-```
 
-A lightweight browser CLI for AI agents. Navigate, observe, interact — all from the command line.
+# mb · mini-browser for agents
 
----
+Browser CLI for agents. Each command is a small Unix tool — reads args, writes stdout, composes with pipes and `&&`.
 
-## Quick Start
+## Setup
 
 ```bash
-# 1. Install dependencies
-bun install
-
-# 2. Build the CLI
-bun run build
-
-# 3. Start Chrome with remote debugging
-./start-chrome.sh
-
-# 4. You're ready!
-node dist/mb.js --help
+npm install -g @runablehq/mini-browser
+mb-start-chrome            # starts Chrome with --remote-debugging-port=9222
+mb go "https://example.com"
 ```
 
----
+Also ships `mb-restart-chrome` to kill and relaunch the debug Chrome instance.
 
-## Demo
-
-```bash
-# Navigate to a page
-$ mb go "https://example.com"
-https://example.com/
-
-# Get page text
-$ mb text
-Example Domain
-
-This domain is for use in documentation examples without needing permission.
-
-Learn more
-
-# Find interactive elements with coordinates
-$ mb snap
-[0] link "Learn more" (246, 223)
-
-# Click by coordinates
-$ mb click 246 223
-
-# Check where we ended up
-$ mb url
-https://www.iana.org/help/example-domains
-
-# Go back
-$ mb back
-
-# Take a screenshot
-$ mb shot page.png
-page.png
-```
-
----
+For local development: `bun install && bun run build`, then use `node dist/mb.js`.
 
 ## Commands
 
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│  NAVIGATION                                                         │
-├─────────────────────────────────────────────────────────────────────┤
-│  go <url>              Navigate to URL                              │
-│  url                   Print current URL                            │
-│  back                  Go back                                      │
-│  forward               Go forward                                   │
-├─────────────────────────────────────────────────────────────────────┤
-│  OBSERVE                                                            │
-├─────────────────────────────────────────────────────────────────────┤
-│  shot [file]           Screenshot (default: ./shot.png)             │
-│  snap                  Interactive elements with (x, y) coords      │
-│  text [selector]       Visible text content                         │
-├─────────────────────────────────────────────────────────────────────┤
-│  INTERACT                                                           │
-├─────────────────────────────────────────────────────────────────────┤
-│  click <x> <y>         Click at coordinates                         │
-│  type [x y] <text>     Type text (triple-clicks to select first)    │
-│  fill <k=v...>         Fill form: Email=a@b.com "Name=Jo Do"        │
-│  key <key...>          Press keys (Enter, Tab, Meta+a)              │
-│  move <x> <y>          Move mouse / hover                           │
-│  drag <x1> <y1> <x2> <y2>  Drag from point to point                 │
-│  scroll <dir> [px]     Scroll up/down/left/right                    │
-├─────────────────────────────────────────────────────────────────────┤
-│  TABS                                                               │
-├─────────────────────────────────────────────────────────────────────┤
-│  tab list              List open tabs                               │
-│  tab new [url]         Open new tab, print index                    │
-│  tab close [n]         Close tab (default: last)                    │
-├─────────────────────────────────────────────────────────────────────┤
-│  OTHER                                                              │
-├─────────────────────────────────────────────────────────────────────┤
-│  js <code>             Run JavaScript in page context               │
-│  wait <target>         Wait for ms/selector/networkidle/url:...     │
-│  audit                 Design audit (colors, fonts, contrast)       │
-│  logs                  Stream console logs (Ctrl+C to stop)         │
-└─────────────────────────────────────────────────────────────────────┘
+Navigation:
+  go <url>                    Navigate (waits for networkidle)
+  url                         Print current URL
+  back / forward              History navigation
+
+Observe:
+  text [selector]             Visible text (selector uses querySelector, default: body)
+  shot [file]                 Screenshot (default: ./shot.png)
+  snap                        Interactive elements via Accessibility Tree
+
+Interact:
+  click <x> <y>               Click at coordinates
+  type [x y] <text>           Type text (with coords: triple-clicks to select first)
+  fill <k=v...>               Fill form fields by label/name/placeholder/selector
+  key <key...>                Press keys — supports combos: Meta+a, Ctrl+Shift+T
+  move <x> <y>                Hover
+  drag <x1> <y1> <x2> <y2>   Drag between points
+  scroll [dir] [px]           Scroll (default: down 500)
+
+Tabs:
+  tab list / new [url] / close [n]
+
+Other:
+  js <code>                   Eval JS in page — strings print raw, objects print JSON
+  wait <ms|selector|networkidle|url:pattern>
+  audit                       Design audit (colors, fonts, contrast)
+  logs                        Stream console logs
+
+Flags:
+  --timeout <ms>   (default: 30000)
+  --tab <n>        target tab (default: 0)
+  --json           structured output (snap, tab list, logs)
+  --right          right-click
+  --double         double-click
 ```
 
-### Flags
+## Notes
 
-| Flag | Description |
-|------|-------------|
-| `--timeout <ms>` | Command timeout (default: 30000) |
-| `--tab <n>` | Target tab index (default: 0) |
-| `--json` | JSON output |
-| `--right` | Right-click |
-| `--double` | Double-click |
+All output goes to stdout. Pipe to grep, jq, wc, or redirect to files as usual.
 
----
+`js` reads from stdin with `-`:
+    echo 'document.title' | mb js -
+    cat scrape.js | mb js -
 
-## How It Works
+`text` calls querySelector — returns first match only. `text "p"` may return empty
+if the first `<p>` on the page is empty. Use a scoped selector like `text "main"` or
+`text "#content"` for better results on noisy pages.
 
-```
-┌──────────┐     CDP      ┌─────────────────┐
-│    mb    │ ◄──────────► │  Chrome/Chromium │
-│   CLI    │   (9222)     │  (debug mode)    │
-└──────────┘              └─────────────────┘
-```
+`snap` output format:
+    [0] button "Submit" (512, 380)
+    [1] textbox "Email" (512, 245) [disabled=true]
+It returns role, accessible name, center (x,y) coords, and state flags (checked,
+expanded, disabled, selected, pressed, haspopup). Only elements in the current
+viewport are returned — scroll down and snap again to find more.
 
-1. **Start Chrome** with `--remote-debugging-port=9222`
-2. **Run commands** — `mb` connects via Chrome DevTools Protocol
-3. **Observe + Interact** — screenshots, text, clicks, forms, etc.
+`fill` matches fields by accessible name, label text, placeholder, then CSS selector
+in that order. Use `fill "#my-input=value"` to target by selector when labels are
+missing.
 
----
+`type` without coordinates types at current focus. With coordinates it triple-clicks
+the field first (selects all existing text) then types the replacement.
 
-## For Agents
+`wait` picks its strategy from the argument format:
+    wait 2000           sleep (ms)
+    wait ".modal"       wait for selector
+    wait networkidle    wait for no network activity
+    wait url:/dashboard wait for URL to contain string
 
-The `snap` command is your best friend:
+`scroll` defaults to `scroll down 500` if called with no args.
 
-```bash
-$ mb snap
-[0] button "Sign In" (845, 32)
-[1] input[type=email] (512, 245)
-[2] input[type=password] (512, 312)
-[3] button "Submit" (512, 380)
-[4] link "Forgot password?" (512, 420)
-```
+`go` waits for networkidle0 before returning, so SPAs render before the next command
+runs. For heavy SPAs that fetch data after mount, follow up with `wait ".selector"`
+for a content element.
 
-Each element has **coordinates** — use them with `click`, `type`, or `fill`.
+`--json` on snap returns `[{role, name, x, y, state}]`. On tab list returns
+`[{index, url, title}]`. On logs emits JSON lines `{tab, type, time, message}`.
 
-```bash
-# Click the Sign In button
-mb click 845 32
-
-# Or fill a form by label
-mb fill Email=user@example.com Password=secret123
-mb click 512 380
-```
-
----
+Overlays (cookie banners, modals) block clicks on elements underneath. Dismiss them
+first, or remove via JS:
+    mb js 'document.querySelector("[class*=cookie]")?.remove()'
+    mb js 'document.body.style.overflow="auto"'
