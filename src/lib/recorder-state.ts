@@ -15,7 +15,7 @@ export interface RecorderState {
 
 export const getStatePath = () => STATE_FILE
 
-export const readState = (): RecorderState | null => {
+export const readState = () => {
   if (!existsSync(STATE_FILE)) return null
   try {
     const content = readFileSync(STATE_FILE, "utf-8")

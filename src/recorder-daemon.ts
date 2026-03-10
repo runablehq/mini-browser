@@ -38,12 +38,6 @@ const main = async () => {
     scale: config.scale,
   })
 
-  // Update state to indicate recording has started
-  const state = readState()
-  if (state) {
-    writeState({ ...state, startedAt: Date.now() })
-  }
-
   let stopping = false
 
   const stop = async () => {
@@ -58,6 +52,8 @@ const main = async () => {
     }
     process.exit(0)
   }
+
+  page.browser().on("disconnected", stop)
 
   process.on("SIGTERM", stop)
   process.on("SIGINT", stop)

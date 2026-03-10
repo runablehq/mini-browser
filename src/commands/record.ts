@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process"
+import { existsSync } from "node:fs"
 import { resolve, dirname } from "node:path"
 import { fileURLToPath } from "node:url"
 import type { Flags } from "../lib/flags"
@@ -37,6 +38,11 @@ const start = async ({ path, tab, fps, scale }: StartInput) => {
   if (existing) clearState()
 
   const outputPath = resolve(path)
+  
+  if (existsSync(outputPath)) {
+    throw new Error(`Output file already exists: ${outputPath}`)
+  }
+
   const ext = outputPath.split(".").pop()?.toLowerCase()
   if (!ext || !["webm", "mp4", "gif"].includes(ext)) {
     throw new Error("Output file must end in .webm, .mp4, or .gif")
@@ -98,8 +104,8 @@ const stop = async () => {
   // Send SIGTERM to daemon
   process.kill(state.pid, "SIGTERM")
 
-  // Wait for process to exit
-  const maxWait = 10000
+  // Wait for process to exit (video encoding can take a while)
+  const maxWait = 60000 // 60 seconds
   const startTime = Date.now()
   while (isProcessRunning(state.pid) && Date.now() - startTime < maxWait) {
     await new Promise((r) => setTimeout(r, 100))
@@ -109,7 +115,7 @@ const stop = async () => {
     // Force kill if still running
     process.kill(state.pid, "SIGKILL")
     clearState()
-    throw new Error("Recorder did not stop gracefully, force killed")
+    throw new Error("Recorder did not stop gracefully within 60s, force killed")
   }
 
   clearState()
