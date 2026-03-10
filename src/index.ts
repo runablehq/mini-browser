@@ -18,8 +18,9 @@ import { wait } from "./commands/wait"
 import { audit } from "./commands/audit"
 import { tab } from "./commands/tab"
 import { logs } from "./commands/logs"
+import { record } from "./commands/record"
 
-const commands = { go, url, back, forward, shot, snap, text, click, type, fill, key, move, drag, scroll, js, wait, audit, tab, logs }
+const commands = { go, url, back, forward, shot, snap, text, click, type, fill, key, move, drag, scroll, js, wait, audit, tab, logs, record }
 
 const help = `mb — Browser CLI for Agents
 
@@ -45,6 +46,11 @@ Interact:
   drag <x1> <y1> <x2> <y2>  Drag
   scroll <dir> [px]     Scroll up/down/left/right
 
+Recording:
+  record start <file>   Start recording (.webm, .mp4, .gif)
+  record stop           Stop recording and save
+  record status         Check recording status
+
 Other:
   js <code>             Run JavaScript
   wait <target>         Wait for ms/selector/networkidle/url:...
@@ -60,7 +66,9 @@ Flags:
   --timeout <ms>        Timeout (default: 30000)
   --tab <n>             Tab index (default: 0)
   --json                JSON output
-  --right/--double      Right/double click`
+  --right/--double      Right/double click
+  --fps <n>             Recording frame rate (default: 30)
+  --scale <n>           Recording scale factor (default: 1)`
 
 const main = async () => {
   try {

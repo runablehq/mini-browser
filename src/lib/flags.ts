@@ -43,6 +43,8 @@ export const parse = (argv: string[]) => {
           right: { type: "boolean", default: false },
           double: { type: "boolean", default: false },
           help: { type: "boolean", short: "h", default: false },
+          fps: { type: "string" },
+          scale: { type: "string" },
         },
       })
     } catch (error) {
@@ -61,6 +63,8 @@ export const parse = (argv: string[]) => {
       right: values.right!,
       double: values.double!,
       help: values.help!,
+      fps: values.fps ? parseNumericFlag({ name: "fps", value: values.fps }) : undefined,
+      scale: values.scale ? parseNumericFlag({ name: "scale", value: values.scale }) : undefined,
     },
   }
 }
