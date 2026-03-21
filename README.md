@@ -2,13 +2,40 @@
 
 Browser CLI for agents. Each command is a small Unix tool — reads args, writes stdout, composes with pipes and `&&`.
 
+<p align="center">
+  <img src="assets/demo.gif" alt="mb demo — install, browse, snap, screenshot" width="860" />
+</p>
+
+<p align="center">
+  <a href="https://www.npmjs.com/package/@runablehq/mini-browser"><img alt="npm" src="https://img.shields.io/npm/v/@runablehq/mini-browser"></a>
+  <a href="https://runable.com/npm/@runablehq/mini-browser"><img alt="runable" src="https://img.shields.io/badge/runable.com-try%20it-blue"></a>
+  <a href="https://skills.sh/runablehq/mini-browser/mini-browser"><img alt="skills.sh" src="https://img.shields.io/badge/skills.sh-install-green"></a>
+</p>
+
 ## Setup
+
+### As an agent skill (recommended)
+
+```bash
+npx skills add runablehq/mini-browser --all --global
+```
+
+This installs the `mini-browser` skill for all your agents via [skills.sh](https://skills.sh/runablehq/mini-browser/mini-browser). Your agent will automatically know how to use `mb` commands.
+
+### As a global CLI
 
 ```bash
 npm install -g @runablehq/mini-browser
+```
+
+### Then start Chrome
+
+```bash
 mb-start-chrome            # starts Chrome with --remote-debugging-port=9222
 mb go "https://example.com"
 ```
+
+> **Try it online** at [runable.com](https://runable.com/npm/@runablehq/mini-browser) — no install needed.
 
 Also ships `mb-restart-chrome` to kill and relaunch the debug Chrome instance.
 
