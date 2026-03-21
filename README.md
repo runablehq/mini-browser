@@ -1,4 +1,3 @@
-
 # mb · mini-browser for agents
 
 Browser CLI for agents. Each command is a small Unix tool — reads args, writes stdout, composes with pipes and `&&`.
@@ -14,6 +13,22 @@ mb go "https://example.com"
 Also ships `mb-restart-chrome` to kill and relaunch the debug Chrome instance.
 
 For local development: `bun install && bun run build`, then use `node dist/mb.js`.
+
+### Chrome scripts
+
+| Script | What it does |
+|---|---|
+| `mb-start-chrome` | Launches Chrome with `--remote-debugging-port=9222`. No-ops if already running. Creates a fresh profile each time so `--window-size=1024,768` is always respected. |
+| `mb-restart-chrome` | Kills the running instance (via PID file) then calls `mb-start-chrome`. |
+
+Both scripts honour these environment variables:
+
+| Variable | Default |
+|---|---|
+| `CHROME_PORT` | `9222` |
+| `CHROME_BIN` | auto-detected (`google-chrome-stable`, `chromium`, …) |
+| `CHROME_PID_FILE` | `<scripts>/.chrome-pid` |
+| `CHROME_USER_DATA_DIR` | `<scripts>/.chrome-profile` |
 
 ## Commands
 
@@ -37,65 +52,126 @@ Interact:
   drag <x1> <y1> <x2> <y2>   Drag between points
   scroll [dir] [px]           Scroll (default: down 500)
 
+Recording:
+  record start <file>         Start recording (.webm, .mp4, .gif)
+  record stop                 Stop recording and save
+  record status               Check recording status
+
 Tabs:
   tab list / new [url] / close [n]
 
 Other:
   js <code>                   Eval JS in page — strings print raw, objects print JSON
   wait <ms|selector|networkidle|url:pattern>
-  audit                       Design audit (colors, fonts, contrast)
-  logs                        Stream console logs
+  audit                       Design audit (colors, fonts, contrast, SEO, a11y)
+  logs                        Stream console logs (Ctrl+C to stop)
 
 Flags:
   --timeout <ms>   (default: 30000)
   --tab <n>        target tab (default: 0)
-  --json           structured output (snap, tab list, logs)
+  --json           structured output (snap, tab list, logs, audit)
   --right          right-click
   --double         double-click
+  --fps <n>        recording frame rate (default: 30)
+  --scale <n>      recording scale factor (default: 1)
 ```
 
 ## Notes
 
 All output goes to stdout. Pipe to grep, jq, wc, or redirect to files as usual.
 
-`js` reads from stdin with `-`:
-    echo 'document.title' | mb js -
-    cat scrape.js | mb js -
+### Navigation
 
-`text` calls querySelector — returns first match only. `text "p"` may return empty
-if the first `<p>` on the page is empty. Use a scoped selector like `text "main"` or
-`text "#content"` for better results on noisy pages.
+`go` waits for `networkidle0` before returning, so SPAs render before the next
+command runs. For heavy SPAs that fetch data after mount, follow up with
+`wait ".selector"` for a content element.
+
+### Observation
+
+`text` calls `querySelector` — returns first match only. `text "p"` may return
+empty if the first `<p>` on the page is empty. Use a scoped selector like
+`text "main"` or `text "#content"` for better results on noisy pages.
 
 `snap` output format:
-    [0] button "Submit" (512, 380)
-    [1] textbox "Email" (512, 245) [disabled=true]
+```
+[0] button "Submit" (512, 380)
+[1] textbox "Email" (512, 245) [disabled=true]
+```
 It returns role, accessible name, center (x,y) coords, and state flags (checked,
 expanded, disabled, selected, pressed, haspopup). Only elements in the current
 viewport are returned — scroll down and snap again to find more.
 
-`fill` matches fields by accessible name, label text, placeholder, then CSS selector
-in that order. Use `fill "#my-input=value"` to target by selector when labels are
-missing.
+### Interaction
 
-`type` without coordinates types at current focus. With coordinates it triple-clicks
-the field first (selects all existing text) then types the replacement.
+`click` supports `--right` for right-click and `--double` for double-click.
 
-`wait` picks its strategy from the argument format:
-    wait 2000           sleep (ms)
-    wait ".modal"       wait for selector
-    wait networkidle    wait for no network activity
-    wait url:/dashboard wait for URL to contain string
+`type` without coordinates types at current focus. With coordinates it
+triple-clicks the field first (selects all existing text) then types the
+replacement.
+
+`fill` matches fields by accessible name, `aria-label`, placeholder, `name`
+attribute, id, then label text in that order. Use `fill "#my-input=value"` to
+target by CSS selector when labels are missing.
 
 `scroll` defaults to `scroll down 500` if called with no args.
 
-`go` waits for networkidle0 before returning, so SPAs render before the next command
-runs. For heavy SPAs that fetch data after mount, follow up with `wait ".selector"`
-for a content element.
+### JavaScript
 
-`--json` on snap returns `[{role, name, x, y, state}]`. On tab list returns
-`[{index, url, title}]`. On logs emits JSON lines `{tab, type, time, message}`.
+`js` reads from stdin with `-`:
+```bash
+echo 'document.title' | mb js -
+cat scrape.js | mb js -
+```
 
-Overlays (cookie banners, modals) block clicks on elements underneath. Dismiss them
-first, or remove via JS:
-    mb js 'document.querySelector("[class*=cookie]")?.remove()'
-    mb js 'document.body.style.overflow="auto"'
+### Recording
+
+`record start <file>` spawns a background daemon that captures the active tab
+via Chrome's screencast API. Supported formats: `.webm`, `.mp4`, `.gif`.
+Use `--fps` and `--scale` to control frame rate and resolution.
+
+`record stop` sends SIGTERM to the daemon and waits up to 60 s for encoding to
+finish.
+
+`record status` prints whether a recording is in progress and how long it has
+been running.
+
+State is stored in `~/.mb-recorder.json`.
+
+### Wait
+
+`wait` picks its strategy from the argument format:
+```
+wait 2000           sleep (ms)
+wait ".modal"       wait for selector
+wait networkidle    wait for no network activity
+wait url:/dashboard wait for URL to contain string
+```
+
+### Audit
+
+`audit` collects palette, typography, spacing, contrast (via CDP), accessibility
+checks, and basic SEO metadata in a single pass. Pass `--json` for structured
+output.
+
+### Tabs
+
+`tab list` prints index, URL, and title for each open tab.  
+`tab new [url]` opens a new tab (optionally navigating) and prints its index.  
+`tab close [n]` closes a tab by index (default: last). Cannot close the last
+remaining tab.
+
+### JSON output
+
+`--json` on `snap` returns `[{role, name, x, y, state}]`.  
+`--json` on `tab list` returns `[{index, url, title}]`.  
+`--json` on `logs` emits JSON lines `{tab, type, time, message}`.  
+`--json` on `audit` returns the full audit data as a JSON object.
+
+### Overlays
+
+Overlays (cookie banners, modals) block clicks on elements underneath. Dismiss
+them first, or remove via JS:
+```bash
+mb js 'document.querySelector("[class*=cookie]")?.remove()'
+mb js 'document.body.style.overflow="auto"'
+```
