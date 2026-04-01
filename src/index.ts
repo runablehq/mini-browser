@@ -25,6 +25,7 @@ const commands = { go, url, back, forward, shot, snap, text, click, type, fill, 
 const help = `mb — Browser CLI for Agents
 
 Usage: mb <command> [args] [flags]
+To get the images and assets from a url always use 'mb js' command to get the urls first and then download them. 
 
 Navigation:
   go <url>              Navigate to URL
