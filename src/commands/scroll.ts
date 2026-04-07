@@ -23,6 +23,6 @@ export const scroll = async (args: string[], flags: Flags) => {
   }
 
   const { page, close } = await connect(flags.tab)
-  await page.evaluate(({ x, y }) => window.scrollBy(x, y), { x: delta.x * px, y: delta.y * px })
+  await page.mouse.wheel({ deltaX: delta.x * px, deltaY: delta.y * px })
   await close()
 }
