@@ -8,7 +8,7 @@ import { clearState, writeState, readState } from "./lib/recorder-state"
 
 interface DaemonConfig {
   path: string
-  tab: number
+  tab?: string
   fps: number
   scale: number
 }

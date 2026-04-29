@@ -21,7 +21,7 @@ const getDaemonPath = () => {
 
 interface StartInput {
   path: string
-  tab: number
+  tab?: string
   fps: number
   scale: number
 }

@@ -1,6 +1,6 @@
 {
   "name": "@runablehq/mini-browser",
-  "version": "0.7.1",
+  "version": "1.0.0",
   "type": "module",
   "description": "A browser CLI for agents, built with Puppeteer",
   "keywords": [

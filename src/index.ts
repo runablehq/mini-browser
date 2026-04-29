@@ -60,12 +60,12 @@ Other:
 
 Tabs:
   tab list              List open tabs
-  tab new [url]         Open new tab, print index
-  tab close [n]         Close tab (default: last)
+  tab new [url]         Open new tab, print id
+  tab close [id]        Close tab by id (default: last opened)
 
 Flags:
   --timeout <ms>        Timeout (default: 30000)
-  --tab <n>             Tab index (default: 0)
+  --tab <id>            Stable Chrome target id (default: first page)
   --json                JSON output
   --right/--double      Right/double click
   --fps <n>             Recording frame rate (default: 30)
