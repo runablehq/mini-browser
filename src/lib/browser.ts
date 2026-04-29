@@ -1,33 +1,32 @@
-import puppeteer, { type Page } from "puppeteer-core"
+import puppeteer, { type Target } from "puppeteer-core"
 import { CDP_URL, VIEWPORT } from "./config"
 
-export const connect = async (tab = 0) => {
+/* puppeteer-core does not expose a public method for the underlying CDP
+ target id, so we reach into `_targetId`. */
+
+export const targetId = (t: Target) =>
+  (t as unknown as { _targetId: string })._targetId
+
+export const connect = async (tab?: string) => {
+
   const browser = await puppeteer.connect({
     browserURL: CDP_URL,
     defaultViewport: VIEWPORT,
   })
-  const pages = await browser.pages()
-  if (tab < 0 || tab >= pages.length) {
+
+  const targets = browser.targets().filter((t) => t.type() === "page")
+  const target = tab ? targets.find((t) => targetId(t) === tab) : targets[0]
+  
+  const page = target ? await target.page() : null
+
+  if (!page) {
     await browser.disconnect()
-    throw new Error(`Invalid tab index: ${tab}. Open tabs: 0-${pages.length - 1}`)
+    throw new Error(tab ? `No tab with id: ${tab}` : "No open tabs")
   }
-  const page = pages[tab]!
-  if (!page) throw new Error("No pages found")
-  return { browser, page, close: () => browser.disconnect() as Promise<void> }
-}
 
-interface WithPageInput {
-  tab: number
-}
-
-export const withPage = async <T>(
-  { tab }: WithPageInput,
-  fn: (page: Page) => Promise<T>
-) => {
-  const { page, close } = await connect(tab)
-  try {
-    return await fn(page)
-  } finally {
-    await close()
+  return {
+    browser,
+    page,
+    close: () => browser.disconnect() as Promise<void>,
   }
 }

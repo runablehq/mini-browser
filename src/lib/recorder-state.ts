@@ -7,7 +7,7 @@ const STATE_FILE = join(homedir(), ".mb-recorder.json")
 export interface RecorderState {
   pid: number
   path: string
-  tab: number
+  tab?: string
   fps: number
   scale: number
   startedAt: number

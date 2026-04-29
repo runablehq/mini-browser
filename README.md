@@ -85,7 +85,7 @@ Recording:
   record status               Check recording status
 
 Tabs:
-  tab list / new [url] / close [n]
+  tab list / new [url] / close [id]
 
 Other:
   js <code>                   Eval JS in page — strings print raw, objects print JSON
@@ -95,7 +95,7 @@ Other:
 
 Flags:
   --timeout <ms>   (default: 30000)
-  --tab <n>        target tab (default: 0)
+  --tab <id>       target tab by stable Chrome id (default: first page)
   --json           structured output (snap, tab list, logs, audit)
   --right          right-click
   --double         double-click
@@ -182,15 +182,25 @@ output.
 
 ### Tabs
 
-`tab list` prints index, URL, and title for each open tab.  
-`tab new [url]` opens a new tab (optionally navigating) and prints its index.  
-`tab close [n]` closes a tab by index (default: last). Cannot close the last
-remaining tab.
+Every tab has a stable id (Chrome's CDP `targetId`) that survives other tabs
+opening or closing. Use `--tab <id>` to target a specific tab from any
+command. Without `--tab`, commands operate on the first open page.
+
+`tab list` prints id, URL, and title for each open tab.  
+`tab new [url]` opens a new tab (optionally navigating) and prints its id.  
+`tab close [id]` closes a tab by id (default: last opened). Cannot close the
+last remaining tab.
+
+```bash
+ID=$(mb tab new https://example.com)
+mb --tab "$ID" shot example.png
+mb tab close "$ID"
+```
 
 ### JSON output
 
 `--json` on `snap` returns `[{role, name, x, y, state}]`.  
-`--json` on `tab list` returns `[{index, url, title}]`.  
+`--json` on `tab list` returns `[{id, url, title}]`.  
 `--json` on `logs` emits JSON lines `{tab, type, time, message}`.  
 `--json` on `audit` returns the full audit data as a JSON object.
 

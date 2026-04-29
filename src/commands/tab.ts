@@ -1,14 +1,15 @@
 import puppeteer from "puppeteer-core"
 import { CDP_URL, VIEWPORT } from "../lib/config"
+import { targetId } from "../lib/browser"
 import type { Flags } from "../lib/flags"
 
 const subcommands = { list, new: newTab, close }
 
 const help = `Usage: mb tab <list|new|close> [args]
 
-  list              List open tabs
-  new [url]         Open new tab, print index
-  close [n]         Close tab (default: last)`
+  list              List open tabs (id, url, title)
+  new [url]         Open new tab, print id
+  close [id]        Close tab by id (default: last opened)`
 
 export const tab = async (args: string[], flags: Flags) => {
   const [sub, ...rest] = args
@@ -24,14 +25,17 @@ export const tab = async (args: string[], flags: Flags) => {
 
 async function list(_args: string[], flags: Flags) {
   const browser = await puppeteer.connect({ browserURL: CDP_URL, defaultViewport: VIEWPORT })
-  const pages = await browser.pages()
+  const targets = browser.targets().filter((t) => t.type() === "page")
 
   const entries = await Promise.all(
-    pages.map(async (page, i) => ({
-      index: i,
-      url: page.url(),
-      title: await page.title(),
-    }))
+    targets.map(async (target) => {
+      const page = await target.page()
+      return {
+        id: targetId(target),
+        url: target.url(),
+        title: page ? await page.title() : "",
+      }
+    }),
   )
 
   await browser.disconnect()
@@ -41,15 +45,29 @@ async function list(_args: string[], flags: Flags) {
     return
   }
 
-  for (const { index, url, title } of entries) {
-    console.log(`${index}\t${url}\t${title}`)
+  for (const { id, url, title } of entries) {
+    console.log(`${id}\t${url}\t${title}`)
   }
 }
 
 async function newTab(args: string[], flags: Flags) {
   const url = args[0]
   const browser = await puppeteer.connect({ browserURL: CDP_URL, defaultViewport: VIEWPORT })
-  const page = await browser.newPage()
+
+  /* page.tagrte is deprecated in puppeteer-core, 
+  so we use the CDP Target.createTarget directly to get the targetId */
+
+  const cdp = await browser.target().createCDPSession()
+  const { targetId: id } = await cdp.send("Target.createTarget", { url: "about:blank" })
+  await cdp.detach()
+
+  const target = await browser.waitForTarget((t) => targetId(t) === id)
+  const page = await target.page()
+  
+  if (!page) {
+    await browser.disconnect()
+    throw new Error("Failed to attach to new tab")
+  }
 
   if (url) {
     try {
@@ -61,31 +79,35 @@ async function newTab(args: string[], flags: Flags) {
     }
   }
 
-  const pages = await browser.pages()
-  const index = pages.indexOf(page)
   await browser.disconnect()
-  console.log(index)
+  console.log(id)
 }
 
 async function close(args: string[], _flags: Flags) {
   const browser = await puppeteer.connect({ browserURL: CDP_URL, defaultViewport: VIEWPORT })
-  const pages = await browser.pages()
+  const targets = browser.targets().filter((t) => t.type() === "page")
 
-  if (pages.length <= 1) {
+  if (targets.length <= 1) {
     await browser.disconnect()
     throw new Error("Cannot close the last tab")
   }
 
-  const index = args[0] !== undefined ? Number(args[0]) : pages.length - 1
+  const requestedId = args[0]
 
-  if (!Number.isInteger(index) || index < 0 || index >= pages.length) {
+  const target = requestedId
+    ? targets.find((t) => targetId(t) === requestedId)
+    : targets[targets.length - 1]
+
+  if (!target) {
     await browser.disconnect()
-    throw new Error(`Invalid tab index: ${args[0]}. Open tabs: 0-${pages.length - 1}`)
+    throw new Error(`No tab with id: ${requestedId}`)
   }
 
-  const target = pages[index]!
+  const id = targetId(target)
   const url = target.url()
-  await target.close()
+  const page = await target.page()
+  await page!.close()
   await browser.disconnect()
-  console.log(`Closed tab ${index}\t${url}`)
+  
+  console.log(`Closed tab ${id}\t${url}`)
 }

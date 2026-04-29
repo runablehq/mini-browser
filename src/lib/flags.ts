@@ -1,5 +1,5 @@
 import { parseArgs } from "node:util"
-import { DEFAULT_TAB, DEFAULT_TIMEOUT } from "./config"
+import { DEFAULT_TIMEOUT } from "./config"
 
 interface NumericFlagInput {
   name: string
@@ -38,7 +38,7 @@ export const parse = (argv: string[]) => {
         allowPositionals: true,
         options: {
           timeout: { type: "string", default: String(DEFAULT_TIMEOUT) },
-          tab: { type: "string", default: String(DEFAULT_TAB) },
+          tab: { type: "string" },
           json: { type: "boolean", default: false },
           right: { type: "boolean", default: false },
           double: { type: "boolean", default: false },
@@ -58,7 +58,7 @@ export const parse = (argv: string[]) => {
     args: positionals,
     flags: {
       timeout: parseNumericFlag({ name: "timeout", value: values.timeout }),
-      tab: parseNumericFlag({ name: "tab", value: values.tab }),
+      tab: values.tab,
       json: values.json!,
       right: values.right!,
       double: values.double!,
