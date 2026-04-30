@@ -35,6 +35,7 @@ Navigation:
 
 Observe:
   shot [file]           Screenshot (default: ./shot.png)
+                        Use --width/--height to resize the tab first
   snap                  Interactive elements with (x, y)
   text [selector]       Visible text content
 
@@ -68,6 +69,8 @@ Flags:
   --tab <id>            Stable Chrome target id (default: first page)
   --json                JSON output
   --right/--double      Right/double click
+  --width <px>          Screenshot viewport width
+  --height <px>         Screenshot viewport height
   --fps <n>             Recording frame rate (default: 30)
   --scale <n>           Recording scale factor (default: 1)`
 

@@ -10,6 +10,11 @@ interface FormatParseArgsErrorInput {
   error: unknown
 }
 
+interface OptionalPositiveIntegerFlagInput {
+  name: string
+  value: unknown
+}
+
 const parseNumericFlag = ({ name, value }: NumericFlagInput) => {
   if (typeof value !== "string") {
     throw new Error(`Invalid value for --${name}: "${String(value)}". Expected a number.`)
@@ -17,6 +22,15 @@ const parseNumericFlag = ({ name, value }: NumericFlagInput) => {
   const numeric = Number(value)
   if (!Number.isFinite(numeric)) {
     throw new Error(`Invalid value for --${name}: "${value}". Expected a number.`)
+  }
+  return numeric
+}
+
+const parseOptionalPositiveIntegerFlag = ({ name, value }: OptionalPositiveIntegerFlagInput) => {
+  if (value === undefined) return undefined
+  const numeric = parseNumericFlag({ name, value })
+  if (!Number.isInteger(numeric) || numeric <= 0) {
+    throw new Error(`Invalid value for --${name}: "${String(value)}". Expected a positive integer.`)
   }
   return numeric
 }
@@ -45,6 +59,8 @@ export const parse = (argv: string[]) => {
           help: { type: "boolean", short: "h", default: false },
           fps: { type: "string" },
           scale: { type: "string" },
+          width: { type: "string" },
+          height: { type: "string" },
         },
       })
     } catch (error) {
@@ -65,6 +81,8 @@ export const parse = (argv: string[]) => {
       help: values.help!,
       fps: values.fps ? parseNumericFlag({ name: "fps", value: values.fps }) : undefined,
       scale: values.scale ? parseNumericFlag({ name: "scale", value: values.scale }) : undefined,
+      width: parseOptionalPositiveIntegerFlag({ name: "width", value: values.width }),
+      height: parseOptionalPositiveIntegerFlag({ name: "height", value: values.height }),
     },
   }
 }
