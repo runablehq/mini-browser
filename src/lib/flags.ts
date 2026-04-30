@@ -10,11 +10,6 @@ interface FormatParseArgsErrorInput {
   error: unknown
 }
 
-interface OptionalPositiveIntegerFlagInput {
-  name: string
-  value: unknown
-}
-
 const parseNumericFlag = ({ name, value }: NumericFlagInput) => {
   if (typeof value !== "string") {
     throw new Error(`Invalid value for --${name}: "${String(value)}". Expected a number.`)
@@ -26,7 +21,7 @@ const parseNumericFlag = ({ name, value }: NumericFlagInput) => {
   return numeric
 }
 
-const parseOptionalPositiveIntegerFlag = ({ name, value }: OptionalPositiveIntegerFlagInput) => {
+const parseOptionalPositiveIntegerFlag = ({ name, value }: NumericFlagInput) => {
   if (value === undefined) return undefined
   const numeric = parseNumericFlag({ name, value })
   if (!Number.isInteger(numeric) || numeric <= 0) {
