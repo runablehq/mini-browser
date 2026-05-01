@@ -35,7 +35,7 @@ Navigation:
 
 Observe:
   shot [file]           Screenshot (default: ./shot.png)
-                        Use --width/--height to resize the tab first
+                        --width/--height temporarily resize viewport for the shot
   snap                  Interactive elements with (x, y)
   text [selector]       Visible text content
 

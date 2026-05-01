@@ -68,7 +68,7 @@ Navigation:
 Observe:
   text [selector]             Visible text (selector uses querySelector, default: body)
   shot [file]                 Screenshot (default: ./shot.png)
-                              Use --width/--height to resize the tab first
+                              --width/--height temporarily resize viewport for the shot
   snap                        Interactive elements via Accessibility Tree
 
 Interact:
@@ -118,8 +118,8 @@ command runs. For heavy SPAs that fetch data after mount, follow up with
 
 ### Observation
 
-`shot --width <px> --height <px>` resizes the actual tab before taking the
-screenshot, so the Chrome window you are looking at will change size.
+`shot --width <px> --height <px>` temporarily resizes the viewport to the
+given dimensions for the screenshot, then restores the original viewport.
 
 `text` calls `querySelector` — returns first match only. `text "p"` may return
 empty if the first `<p>` on the page is empty. Use a scoped selector like

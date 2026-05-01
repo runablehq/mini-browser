@@ -15,13 +15,14 @@ const getViewportSize = ({ flags }: ViewportFlagsInput) => {
     throw new Error("--width and --height must be provided together.")
   }
 
-  return { width, height }
+  return { width: width!, height: height! }
 }
 
 export const shot = async (args: string[], flags: Flags) => {
   const path = args[0] || "./shot.png"
   const viewportSize = getViewportSize({ flags })
   const { page, close } = await connect(flags.tab)
+  const originalViewport = page.viewport()
   try {
     if (viewportSize) {
       await page.setViewport(viewportSize)
@@ -29,6 +30,9 @@ export const shot = async (args: string[], flags: Flags) => {
     await page.screenshot({ path, type: "png" })
     console.log(path)
   } finally {
+    if (viewportSize && originalViewport) {
+      await page.setViewport(originalViewport)
+    }
     await close()
   }
 }
