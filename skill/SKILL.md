@@ -154,6 +154,7 @@ mb wait url:/dashboard
 
 ```bash
 mb shot page.png
+mb shot page.png --width 1440 --height 900
 ```
 
 ### Extract text

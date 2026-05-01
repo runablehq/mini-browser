@@ -68,6 +68,7 @@ Navigation:
 Observe:
   text [selector]             Visible text (selector uses querySelector, default: body)
   shot [file]                 Screenshot (default: ./shot.png)
+                              --width/--height temporarily resize viewport for the shot
   snap                        Interactive elements via Accessibility Tree
 
 Interact:
@@ -99,6 +100,8 @@ Flags:
   --json           structured output (snap, tab list, logs, audit)
   --right          right-click
   --double         double-click
+  --width <px>     screenshot viewport width
+  --height <px>    screenshot viewport height
   --fps <n>        recording frame rate (default: 30)
   --scale <n>      recording scale factor (default: 1)
 ```
@@ -114,6 +117,9 @@ command runs. For heavy SPAs that fetch data after mount, follow up with
 `wait ".selector"` for a content element.
 
 ### Observation
+
+`shot --width <px> --height <px>` temporarily resizes the viewport to the
+given dimensions for the screenshot, then restores the original viewport.
 
 `text` calls `querySelector` — returns first match only. `text "p"` may return
 empty if the first `<p>` on the page is empty. Use a scoped selector like

@@ -21,6 +21,15 @@ const parseNumericFlag = ({ name, value }: NumericFlagInput) => {
   return numeric
 }
 
+const parseOptionalPositiveIntegerFlag = ({ name, value }: NumericFlagInput) => {
+  if (value === undefined) return undefined
+  const numeric = parseNumericFlag({ name, value })
+  if (!Number.isInteger(numeric) || numeric <= 0) {
+    throw new Error(`Invalid value for --${name}: "${String(value)}". Expected a positive integer.`)
+  }
+  return numeric
+}
+
 const formatParseArgsError = ({ error }: FormatParseArgsErrorInput) => {
   const message = error instanceof Error ? error.message : String(error)
   const unknownFlag = message.match(/Unknown option '([^']+)'/)
@@ -45,6 +54,8 @@ export const parse = (argv: string[]) => {
           help: { type: "boolean", short: "h", default: false },
           fps: { type: "string" },
           scale: { type: "string" },
+          width: { type: "string" },
+          height: { type: "string" },
         },
       })
     } catch (error) {
@@ -65,6 +76,8 @@ export const parse = (argv: string[]) => {
       help: values.help!,
       fps: values.fps ? parseNumericFlag({ name: "fps", value: values.fps }) : undefined,
       scale: values.scale ? parseNumericFlag({ name: "scale", value: values.scale }) : undefined,
+      width: parseOptionalPositiveIntegerFlag({ name: "width", value: values.width }),
+      height: parseOptionalPositiveIntegerFlag({ name: "height", value: values.height }),
     },
   }
 }
