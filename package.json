@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "type": "module",
   "description": "A browser CLI for agents, built with Puppeteer",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/runablehq/mini-browser.git"
+  },
   "keywords": [
     "browser",
     "cli",
