@@ -17,13 +17,14 @@
     "headless"
   ],
   "bin": {
-    "mb": "./dist/mb.js",
-    "mb-start-chrome": "./scripts/start-chrome.sh",
-    "mb-restart-chrome": "./scripts/restart-chrome.sh"
+    "mb": "dist/mb.js",
+    "mb-start-chrome": "scripts/start-chrome.sh",
+    "mb-restart-chrome": "scripts/restart-chrome.sh"
   },
   "files": [
     "dist",
-    "scripts",
+    "scripts/start-chrome.sh",
+    "scripts/restart-chrome.sh",
     "README.md"
   ],
   "scripts": {

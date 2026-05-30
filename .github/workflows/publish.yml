@@ -2,12 +2,21 @@ name: Publish Package
 
 on:
   push:
+    branches:
+      - main
+    paths:
+      - package.json
     tags:
       - "v*"
+  workflow_dispatch:
 
 permissions:
   id-token: write
-  contents: read
+  contents: write
+
+concurrency:
+  group: publish-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   publish:
@@ -15,6 +24,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       - name: Set up Bun
         uses: oven-sh/setup-bun@v2
@@ -25,6 +36,46 @@ jobs:
           node-version: "24"
           registry-url: "https://registry.npmjs.org"
           package-manager-cache: false
+
+      - name: Detect release
+        id: release
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          package_name="$(node -e "const fs = require('node:fs'); const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8')); console.log(pkg.name);")"
+          package_version="$(node -e "const fs = require('node:fs'); const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8')); console.log(pkg.version);")"
+          tag="v${package_version}"
+
+          if [[ ! "${package_version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$ ]]; then
+            echo "Invalid package.json version: ${package_version}"
+            exit 1
+          fi
+
+          if [[ "${GITHUB_REF}" == refs/tags/* && "${GITHUB_REF_NAME}" != "${tag}" ]]; then
+            echo "Tag ${GITHUB_REF_NAME} does not match package.json version ${package_version}."
+            exit 1
+          fi
+
+          git fetch --tags --force origin
+
+          tag_exists="false"
+          if git rev-parse --verify --quiet "refs/tags/${tag}" >/dev/null; then
+            tag_exists="true"
+          fi
+
+          published="false"
+          if npm view "${package_name}@${package_version}" version >/dev/null 2>&1; then
+            published="true"
+          fi
+
+          {
+            echo "package_name=${package_name}"
+            echo "package_version=${package_version}"
+            echo "tag=${tag}"
+            echo "tag_exists=${tag_exists}"
+            echo "published=${published}"
+          } >> "${GITHUB_OUTPUT}"
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
@@ -39,4 +90,24 @@ jobs:
         run: npm test --if-present
 
       - name: Publish to npm
+        if: steps.release.outputs.published != 'true'
         run: npm publish --access public --tag latest
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+          TAG_EXISTS: ${{ steps.release.outputs.tag_exists }}
+        run: |
+          set -euo pipefail
+
+          if gh release view "${TAG}" >/dev/null 2>&1; then
+            echo "Release ${TAG} already exists."
+            exit 0
+          fi
+
+          if [[ "${TAG_EXISTS}" == "true" ]]; then
+            gh release create "${TAG}" --verify-tag --title "${TAG}" --generate-notes
+          else
+            gh release create "${TAG}" --target "${GITHUB_SHA}" --title "${TAG}" --generate-notes
+          fi
