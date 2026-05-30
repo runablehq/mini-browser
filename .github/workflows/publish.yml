@@ -63,6 +63,12 @@ jobs:
           tag_exists="false"
           if git rev-parse --verify --quiet "refs/tags/${tag}" >/dev/null; then
             tag_exists="true"
+            tag_commit="$(git rev-list -n 1 "${tag}")"
+
+            if [[ "${tag_commit}" != "${GITHUB_SHA}" ]]; then
+              echo "Tag ${tag} points to ${tag_commit}, but this run is publishing ${GITHUB_SHA}."
+              exit 1
+            fi
           fi
 
           published="false"
