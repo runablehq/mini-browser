@@ -19,8 +19,9 @@ import { audit } from "./commands/audit"
 import { tab } from "./commands/tab"
 import { logs } from "./commands/logs"
 import { record } from "./commands/record"
+import { reload } from "./commands/reload"
 
-const commands = { go, url, back, forward, shot, snap, text, click, type, fill, key, move, drag, scroll, js, wait, audit, tab, logs, record }
+const commands = { go, url, back, forward, reload, shot, snap, text, click, type, fill, key, move, drag, scroll, js, wait, audit, tab, logs, record }
 
 const help = `mb — Browser CLI for Agents
 
@@ -32,6 +33,7 @@ Navigation:
   url                   Print current URL
   back                  Go back
   forward               Go forward
+  reload                Reload page
 
 Observe:
   shot [file]           Screenshot (default: ./shot.png)
